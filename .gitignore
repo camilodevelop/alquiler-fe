@@ -1,0 +1,26 @@
+# dependencies
+node_modules
+.pnpm-store
+
+# builds
+.next
+dist
+out
+.expo
+
+# env
+.env
+.env.local
+.env.*.local
+
+# turbo
+.turbo
+
+# supabase
+supabase/.branches
+supabase/.temp
+
+# misc
+.DS_Store
+*.pem
+*.log
