@@ -96,7 +96,7 @@ export const NIVELES_SCORING: { value: NivelScoring; label: string; color: strin
 export const WIZARD_STEPS = [
   { id: 1, label: "Datos personales" },
   { id: 2, label: "Laboral y financiera" },
-  { id: 3, label: "Propiedad" },
+  { id: 3, label: "Estado" },
   { id: 4, label: "Documentos" },
   { id: 5, label: "Referencias" },
   { id: 6, label: "Scoring" },

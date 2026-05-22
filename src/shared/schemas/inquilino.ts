@@ -29,25 +29,28 @@ export const InquilinoStep2Schema = z.object({
   observaciones_financieras: z.string().optional(),
 });
 
+const inquilinoStatusEnum = z.enum([
+  "candidato",
+  "en_revision",
+  "aprobado",
+  "activo",
+  "moroso",
+  "finalizado",
+  "rechazado",
+  "inactivo",
+]);
+
 export const InquilinoStep3Schema = z.object({
+  status: inquilinoStatusEnum,
+  /** Solo lectura en formulario; la asignación viene del contrato */
   propiedad_id: z.string().optional(),
   unidad_id: z.string().optional(),
   fecha_ingreso: z.string().optional(),
   fecha_salida: z.string().optional(),
-  canon_mensual: z.coerce.number().min(0).optional(),
-  deposito: z.coerce.number().min(0).optional(),
+  canon_mensual: z.coerce.number().optional(),
+  deposito: z.coerce.number().optional(),
   responsable_servicios: z.enum(["propietario", "inquilino", "compartido"]).optional(),
-  ocupantes: z.coerce.number().min(1).max(20).optional(),
-  status: z.enum([
-    "candidato",
-    "en_revision",
-    "aprobado",
-    "activo",
-    "moroso",
-    "finalizado",
-    "rechazado",
-    "inactivo",
-  ]),
+  ocupantes: z.coerce.number().optional(),
 });
 
 export const InquilinoReferenciasSchema = z.object({

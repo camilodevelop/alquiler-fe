@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { Eye, Pencil, Trash2 } from "lucide-react";
-import { Badge } from "@/components/ui";
-import { MANITAS_ESTADO_CONFIG, MANITAS_ESPECIALIDAD_CONFIG } from "../../constants";
+import { MANITAS_ESPECIALIDAD_CONFIG } from "../../constants";
+import { ManitasEstadoBadge } from "./manitas-estado-badge";
 import type { Manitas } from "../../types";
 import { manitasNombreCompleto } from "../../utils/labels";
 import { ManitasAvatar } from "./manitas-avatar";
@@ -35,7 +35,6 @@ export function ManitasTable({
         </thead>
         <tbody className="divide-y divide-gray-100">
           {list.map((m) => {
-            const st = MANITAS_ESTADO_CONFIG[m.estado];
             const esp = MANITAS_ESPECIALIDAD_CONFIG[m.especialidad];
             return (
               <tr key={m.id} className="hover:bg-gray-50/80 group">
@@ -57,7 +56,7 @@ export function ManitasTable({
                 </td>
                 <td className="px-4 py-3 text-gray-700">{esp.label}</td>
                 <td className="px-4 py-3">
-                  <Badge variant={st.variant}>{st.label}</Badge>
+                  <ManitasEstadoBadge estado={m.estado} />
                 </td>
                 <td className="px-4 py-3">
                   <ManitasRatingDisplay value={m.rating} size={14} />

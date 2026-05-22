@@ -3,8 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Mail, MapPin, Pencil, Phone, Wrench } from "lucide-react";
-import { Button, Badge } from "@/components/ui";
-import { MANITAS_ESTADO_CONFIG, MANITAS_ESPECIALIDAD_CONFIG } from "../../constants";
+import { Button } from "@/components/ui";
+import { MANITAS_ESPECIALIDAD_CONFIG } from "../../constants";
+import { ManitasEstadoBadge } from "./manitas-estado-badge";
 import type { Manitas } from "../../types";
 import { manitasNombreCompleto } from "../../utils/labels";
 import { mantenimientoService } from "../../services/mantenimiento.service";
@@ -20,7 +21,6 @@ export function ManitasProfile({ initial }: { initial: Manitas }) {
     if (data) setManitas(data);
   };
 
-  const st = MANITAS_ESTADO_CONFIG[manitas.estado];
   const esp = MANITAS_ESPECIALIDAD_CONFIG[manitas.especialidad];
 
   return (
@@ -39,7 +39,7 @@ export function ManitasProfile({ initial }: { initial: Manitas }) {
             <ManitasAvatar manitas={manitas} size="xl" />
             <div className="flex-1 min-w-0">
               <div className="flex flex-wrap items-center gap-2 mb-2">
-                <Badge variant={st.variant}>{st.label}</Badge>
+                <ManitasEstadoBadge estado={manitas.estado} className="text-[11px] px-2 py-1" />
                 <span className="text-sm font-medium text-violet-700">{esp.label}</span>
               </div>
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">

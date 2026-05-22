@@ -10,7 +10,8 @@ import {
   Plus,
   User,
 } from "lucide-react";
-import { Button } from "@/components/ui";
+import { Button, TablePagination } from "@/components/ui";
+import { usePagination } from "@/hooks/use-pagination";
 import { CONTRATO_RESUMEN_CONFIG, MES_COBRO_CONFIG } from "../constants/pagos-inquilinos";
 import type { ContratoPagosInquilino, MesCobroEstado, PagosInquilinosResumen } from "../types";
 import { formatFecha, formatPrecio } from "../utils/labels";
@@ -175,6 +176,18 @@ export function PagosInquilinosPanel({
   resumen: PagosInquilinosResumen;
   isLoading?: boolean;
 }) {
+  const {
+    paginatedItems: contratosPagina,
+    page,
+    setPage,
+    pageSize,
+    setPageSize,
+    totalPages,
+    total,
+    rangeStart,
+    rangeEnd,
+  } = usePagination(resumen.contratos, 6);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-24 text-sm text-gray-500">
@@ -237,9 +250,23 @@ export function PagosInquilinosPanel({
       </div>
 
       <div className="space-y-4">
-        {resumen.contratos.map((c) => (
+        {contratosPagina.map((c) => (
           <ContratoPagosCard key={c.contrato_id} contrato={c} />
         ))}
+      </div>
+
+      <div className="rounded-xl border border-gray-100 overflow-hidden">
+        <TablePagination
+          page={page}
+          pageSize={pageSize}
+          totalPages={totalPages}
+          total={total}
+          rangeStart={rangeStart}
+          rangeEnd={rangeEnd}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+          pageSizeOptions={[4, 6, 10, 15]}
+        />
       </div>
     </div>
   );

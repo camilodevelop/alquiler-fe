@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { Building2, Eye, Pencil, Trash2, FileText } from "lucide-react";
+import { TablePagination } from "@/components/ui";
+import { usePagination } from "@/hooks/use-pagination";
 import type { MovimientoFinanciero } from "../types";
 import { MovimientoEstadoBadge } from "./movimiento-estado-badge";
 import { MovimientoTipoBadge } from "./movimiento-tipo-badge";
@@ -32,11 +34,24 @@ export function MovimientosTable({
   deletingId?: string | null;
   onClearFilters?: () => void;
 }) {
+  const {
+    paginatedItems,
+    page,
+    setPage,
+    pageSize,
+    setPageSize,
+    totalPages,
+    total,
+    rangeStart,
+    rangeEnd,
+  } = usePagination(movimientos, 15);
+
   if (movimientos.length === 0) {
     return <MovimientosEmpty variant="filters" onClearFilters={onClearFilters} />;
   }
 
   return (
+    <div>
     <div className="overflow-x-auto">
       <table className="w-full text-sm border-collapse min-w-[1100px]">
         <thead>
@@ -61,7 +76,7 @@ export function MovimientosTable({
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100">
-          {movimientos.map((m) => (
+          {paginatedItems.map((m) => (
             <tr
               key={m.id}
               className={[
@@ -180,6 +195,17 @@ export function MovimientosTable({
           ))}
         </tbody>
       </table>
+    </div>
+    <TablePagination
+      page={page}
+      pageSize={pageSize}
+      totalPages={totalPages}
+      total={total}
+      rangeStart={rangeStart}
+      rangeEnd={rangeEnd}
+      onPageChange={setPage}
+      onPageSizeChange={setPageSize}
+    />
     </div>
   );
 }

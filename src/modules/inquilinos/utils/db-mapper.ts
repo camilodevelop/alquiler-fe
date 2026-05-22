@@ -97,10 +97,23 @@ export function mapInquilinoFromDb(
   };
 }
 
+export type InquilinoAssignmentRow = {
+  propiedad_id?: string | null;
+  unidad_id?: string | null;
+  unidad_nombre?: string | null;
+  fecha_ingreso?: string | null;
+  fecha_salida?: string | null;
+  canon_mensual?: number | null;
+  deposito?: number | null;
+  responsable_servicios?: string | null;
+  ocupantes?: number | null;
+};
+
+/** Asignación a propiedad: solo se escribe desde la activación del contrato. */
 export function formToInquilinoPayload(
   values: InquilinoFormValues,
   ownerId: string,
-  unidadNombre?: string,
+  assignment?: InquilinoAssignmentRow | null,
 ) {
   return {
     owner_id: ownerId,
@@ -124,15 +137,15 @@ export function formToInquilinoPayload(
     telefono_referencia_laboral: values.telefono_referencia_laboral || null,
     observaciones_financieras: values.observaciones_financieras || null,
     status: values.status,
-    propiedad_id: values.propiedad_id || null,
-    unidad_id: values.unidad_id || null,
-    unidad_nombre: unidadNombre || null,
-    fecha_ingreso: values.fecha_ingreso || null,
-    fecha_salida: values.fecha_salida || null,
-    canon_mensual: values.canon_mensual ?? null,
-    deposito: values.deposito ?? null,
-    responsable_servicios: values.responsable_servicios ?? "inquilino",
-    ocupantes: values.ocupantes ?? 1,
+    propiedad_id: assignment?.propiedad_id ?? null,
+    unidad_id: assignment?.unidad_id ?? null,
+    unidad_nombre: assignment?.unidad_nombre ?? null,
+    fecha_ingreso: assignment?.fecha_ingreso ?? null,
+    fecha_salida: assignment?.fecha_salida ?? null,
+    canon_mensual: assignment?.canon_mensual ?? null,
+    deposito: assignment?.deposito ?? null,
+    responsable_servicios: assignment?.responsable_servicios ?? "inquilino",
+    ocupantes: assignment?.ocupantes ?? 1,
   };
 }
 

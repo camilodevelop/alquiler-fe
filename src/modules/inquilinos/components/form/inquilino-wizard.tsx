@@ -13,7 +13,6 @@ import {
   InquilinoStep3Schema,
   type InquilinoFormValues,
 } from "@/shared/schemas/inquilino";
-import type { Propiedad } from "@/modules/propiedades/types";
 import { inquilinosService } from "../../services/inquilinos.service";
 import { INQUILINO_FORM_DEFAULTS } from "../../utils/defaults";
 import type { InquilinoDocumento, InquilinoWizardStep, TipoDocumentoInquilino } from "../../types";
@@ -21,7 +20,7 @@ import { StepIndicator } from "./step-indicator";
 import { WizardStepHeader } from "./wizard-step-header";
 import { StepPersonal } from "./steps/step-personal";
 import { StepLaboral } from "./steps/step-laboral";
-import { StepPropiedad } from "./steps/step-propiedad";
+import { StepEstado } from "./steps/step-estado";
 import { StepDocumentos } from "./steps/step-documentos";
 import { StepReferencias } from "./steps/step-referencias";
 import { StepScoring } from "./steps/step-scoring";
@@ -31,7 +30,7 @@ interface InquilinoWizardProps {
   inquilinoId?: string;
   initialValues?: InquilinoFormValues;
   initialDocumentos?: InquilinoDocumento[];
-  propiedades: Propiedad[];
+  hasContratoAsignado?: boolean;
 }
 
 export function InquilinoWizard({
@@ -39,7 +38,7 @@ export function InquilinoWizard({
   inquilinoId,
   initialValues,
   initialDocumentos = [],
-  propiedades,
+  hasContratoAsignado = false,
 }: InquilinoWizardProps) {
   const router = useRouter();
   const [step, setStep] = useState<InquilinoWizardStep>(1);
@@ -55,7 +54,7 @@ export function InquilinoWizard({
     mode: "onTouched",
   });
 
-  const { register, handleSubmit, watch, setValue, setError, clearErrors, formState: { errors } } = form;
+  const { register, handleSubmit, watch, setError, formState: { errors } } = form;
 
   const applyZodIssues = useCallback(
     (issues: ZodIssue[]) => {
@@ -181,13 +180,11 @@ export function InquilinoWizard({
             {step === 1 && <StepPersonal register={register} errors={errors} watch={watch} />}
             {step === 2 && <StepLaboral register={register} errors={errors} />}
             {step === 3 && (
-              <StepPropiedad
+              <StepEstado
                 register={register}
                 errors={errors}
                 watch={watch}
-                setValue={setValue}
-                propiedades={propiedades}
-                inquilinoId={inquilinoId}
+                hasContratoAsignado={hasContratoAsignado}
               />
             )}
             {step === 4 && <StepDocumentos documentos={displayDocs} onAdd={handleAddDoc} />}

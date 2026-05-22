@@ -102,30 +102,60 @@ export function InquilinoDetail({ inquilino: initial }: { inquilino: Inquilino }
               <Row label="Ciudad" value={inquilino.ciudad ?? "—"} />
               <Row label="Ingresos" value={inquilino.ingresos_mensuales ? formatPrecio(inquilino.ingresos_mensuales) : "—"} />
             </Section>
-            <Section title="Propiedad">
-              <Row label="Inmueble" value={inquilino.asignacion?.propiedad_nombre ?? "Sin asignar"} />
-              <Row label="Unidad" value={inquilino.asignacion?.unidad_nombre ?? "—"} />
-              <Row label="Ingreso" value={formatFecha(inquilino.asignacion?.fecha_ingreso)} />
-              <Row label="Canon" value={inquilino.asignacion?.canon_mensual ? formatPrecio(inquilino.asignacion.canon_mensual) : "—"} />
-              <Row label="Depósito" value={inquilino.asignacion?.deposito ? formatPrecio(inquilino.asignacion.deposito) : "—"} />
+            <Section title="Inmueble (vía contrato)">
+              {inquilino.asignacion?.propiedad_id ? (
+                <>
+                  <Row label="Inmueble" value={inquilino.asignacion.propiedad_nombre ?? "—"} />
+                  <Row label="Unidad" value={inquilino.asignacion.unidad_nombre ?? "—"} />
+                  <Row label="Ingreso" value={formatFecha(inquilino.asignacion.fecha_ingreso)} />
+                  <Row label="Canon" value={inquilino.asignacion.canon_mensual ? formatPrecio(inquilino.asignacion.canon_mensual) : "—"} />
+                  <Row label="Depósito" value={inquilino.asignacion.deposito ? formatPrecio(inquilino.asignacion.deposito) : "—"} />
+                </>
+              ) : (
+                <p className="text-sm text-gray-500 leading-relaxed col-span-2">
+                  Sin vinculación a un inmueble. Crea y activa un{" "}
+                  <Link href="/dashboard/contratos/nuevo" className="text-brand-600 font-medium hover:underline">
+                    contrato de arrendamiento
+                  </Link>{" "}
+                  para asociar propiedad, canon y fechas.
+                </p>
+              )}
             </Section>
           </div>
         )}
 
         {tab === "contrato" && (
           <div className="space-y-4 text-sm">
-            <p className="text-gray-500">Contrato activo (mock)</p>
-            <div className="rounded-xl border border-gray-200 p-4 flex items-center justify-between">
-              <div>
-                <p className="font-semibold text-gray-900">Contrato de arrendamiento</p>
-                <p className="text-gray-500 mt-1 flex items-center gap-1">
-                  <Calendar size={14} />
-                  {formatFecha(inquilino.asignacion?.fecha_ingreso)} — {formatFecha(inquilino.asignacion?.fecha_salida) || "Indefinido"}
-                </p>
-                <span className="inline-block mt-2 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">Activo</span>
+            {inquilino.asignacion?.propiedad_id ? (
+              <div className="rounded-xl border border-gray-200 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <p className="font-semibold text-gray-900">Arrendamiento activo</p>
+                  <p className="text-gray-600 mt-1">{inquilino.asignacion.propiedad_nombre}</p>
+                  <p className="text-gray-500 mt-1 flex items-center gap-1">
+                    <Calendar size={14} />
+                    {formatFecha(inquilino.asignacion.fecha_ingreso)} —{" "}
+                    {formatFecha(inquilino.asignacion.fecha_salida) || "Indefinido"}
+                  </p>
+                  <span className="inline-block mt-2 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
+                    Activo
+                  </span>
+                </div>
+                <Link href="/dashboard/contratos">
+                  <Button variant="secondary" size="sm">
+                    Ver contratos
+                  </Button>
+                </Link>
               </div>
-              <Button variant="secondary" size="sm">Ver contrato</Button>
-            </div>
+            ) : (
+              <div className="rounded-xl border border-dashed border-gray-200 p-6 text-center">
+                <p className="text-gray-600">No hay contrato activo vinculado.</p>
+                <Link href="/dashboard/contratos/nuevo" className="inline-block mt-3">
+                  <Button variant="primary" size="sm">
+                    Crear contrato
+                  </Button>
+                </Link>
+              </div>
+            )}
           </div>
         )}
 

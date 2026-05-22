@@ -36,25 +36,39 @@ function revalidateInquilinos() {
   revalidatePath("/dashboard/inquilinos");
 }
 
-async function resolveOwnerId(
-  supabase: DbClient,
-  userId: string,
-  propiedadId?: string,
-): Promise<{ ownerId?: string; error?: string }> {
-  if (!propiedadId) return { ownerId: userId };
-
-  const { data: prop } = await supabase
-    .from("propiedades")
-    .select("owner_id, estado")
-    .eq("id", propiedadId)
-    .single<{ owner_id: string; estado: string }>();
-
-  if (!prop) return { error: "Propiedad no encontrada" };
-  if (prop.estado === "inactiva") {
-    return { error: "No se puede asociar a una propiedad inactiva" };
+function rejectManualActivo(status: string): string | undefined {
+  if (status === "activo") {
+    return "El estado «Activo» solo se asigna al activar un contrato de arrendamiento.";
   }
+  return undefined;
+}
 
-  return { ownerId: prop.owner_id };
+type InquilinoAssignmentDb = {
+  propiedad_id: string | null;
+  unidad_id: string | null;
+  unidad_nombre: string | null;
+  fecha_ingreso: string | null;
+  fecha_salida: string | null;
+  canon_mensual: number | null;
+  deposito: number | null;
+  responsable_servicios: string | null;
+  ocupantes: number | null;
+  status: string;
+};
+
+async function loadInquilinoAssignment(
+  supabase: DbClient,
+  id: string,
+): Promise<InquilinoAssignmentDb | null> {
+  const { data } = await supabase
+    .from("inquilinos")
+    .select(
+      "status, propiedad_id, unidad_id, unidad_nombre, fecha_ingreso, fecha_salida, canon_mensual, deposito, responsable_servicios, ocupantes",
+    )
+    .eq("id", id)
+    .single<InquilinoAssignmentDb>();
+
+  return data ?? null;
 }
 
 async function loadInquilinoRelations(
@@ -212,25 +226,10 @@ export async function createInquilinoAction(
   } = await supabase.auth.getUser();
   if (!user) return { data: null, error: "No autenticado" };
 
-  const { ownerId, error: ownerError } = await resolveOwnerId(
-    supabase,
-    user.id,
-    parsed.data.propiedad_id,
-  );
-  if (ownerError || !ownerId) return { data: null, error: ownerError ?? "Sin propietario" };
+  const activoError = rejectManualActivo(parsed.data.status);
+  if (activoError) return { data: null, error: activoError };
 
-  if (parsed.data.status === "activo" && !parsed.data.propiedad_id) {
-    return { data: null, error: "Un inquilino activo debe tener propiedad asociada" };
-  }
-  if (parsed.data.status === "activo" && !parsed.data.fecha_ingreso) {
-    return { data: null, error: "Un inquilino activo debe tener fecha de ingreso" };
-  }
-
-  const unidadNombre = parsed.data.unidad_id
-    ? `Habitación ${parsed.data.unidad_id.replace("hab-", "")}`
-    : undefined;
-
-  const payload = formToInquilinoPayload(parsed.data, ownerId, unidadNombre);
+  const payload = formToInquilinoPayload(parsed.data, user.id, null);
 
   const { data: created, error } = await supabase
     .from("inquilinos")
@@ -283,14 +282,31 @@ export async function updateInquilinoAction(
   }
 
   const supabase = await db();
-  const { data: existing } = await supabase.from("inquilinos").select("owner_id").eq("id", id).single<{ owner_id: string }>();
+  const { data: existing } = await supabase
+    .from("inquilinos")
+    .select("owner_id")
+    .eq("id", id)
+    .single<{ owner_id: string }>();
   if (!existing) return { data: null, error: "Inquilino no encontrado" };
 
-  const unidadNombre = parsed.data.unidad_id
-    ? `Habitación ${parsed.data.unidad_id.replace("hab-", "")}`
-    : undefined;
+  const assignmentRow = await loadInquilinoAssignment(supabase, id);
+  if (!assignmentRow) return { data: null, error: "Inquilino no encontrado" };
 
-  const payload = formToInquilinoPayload(parsed.data, existing.owner_id, unidadNombre);
+  if (parsed.data.status === "activo" && assignmentRow.status !== "activo") {
+    return { data: null, error: rejectManualActivo("activo") };
+  }
+
+  const payload = formToInquilinoPayload(parsed.data, existing.owner_id, {
+    propiedad_id: assignmentRow.propiedad_id,
+    unidad_id: assignmentRow.unidad_id,
+    unidad_nombre: assignmentRow.unidad_nombre,
+    fecha_ingreso: assignmentRow.fecha_ingreso,
+    fecha_salida: assignmentRow.fecha_salida,
+    canon_mensual: assignmentRow.canon_mensual,
+    deposito: assignmentRow.deposito,
+    responsable_servicios: assignmentRow.responsable_servicios,
+    ocupantes: assignmentRow.ocupantes,
+  });
   const { owner_id: _o, ...updatePayload } = payload;
 
   const { error } = await supabase.from("inquilinos").update(updatePayload as never).eq("id", id);
@@ -330,6 +346,9 @@ export async function changeInquilinoStatusAction(
   id: string,
   status: InquilinoStatus,
 ): Promise<{ error?: string }> {
+  const activoError = rejectManualActivo(status);
+  if (activoError) return { error: activoError };
+
   const supabase = await db();
   const { error } = await supabase.from("inquilinos").update({ status } as never).eq("id", id);
   if (error) return { error: error.message };

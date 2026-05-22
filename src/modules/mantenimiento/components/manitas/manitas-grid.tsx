@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import { Eye, Mail, MapPin, Pencil, Phone, Trash2, Wrench } from "lucide-react";
-import { Badge } from "@/components/ui";
-import { MANITAS_ESTADO_CONFIG, MANITAS_ESPECIALIDAD_CONFIG } from "../../constants";
+import { MANITAS_ESPECIALIDAD_CONFIG } from "../../constants";
 import type { Manitas } from "../../types";
 import { manitasNombreCompleto } from "../../utils/labels";
 import { ManitasAvatar } from "./manitas-avatar";
+import { ManitasEstadoBadge } from "./manitas-estado-badge";
 import { ManitasRatingDisplay } from "./manitas-rating";
 
 export function ManitasGrid({
@@ -17,31 +17,34 @@ export function ManitasGrid({
   onDelete: (m: Manitas) => void;
 }) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 p-4 sm:p-5">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-4 sm:p-5">
       {list.map((m) => {
-        const st = MANITAS_ESTADO_CONFIG[m.estado];
         const esp = MANITAS_ESPECIALIDAD_CONFIG[m.especialidad];
         return (
           <article
             key={m.id}
             className="flex flex-col rounded-2xl border border-gray-200/90 bg-white shadow-sm overflow-hidden hover:shadow-md hover:border-violet-200/60 transition-all"
           >
-            <div className="p-5 flex-1 flex flex-col gap-4">
-              <div className="flex gap-4">
-                <ManitasAvatar manitas={m} size="lg" />
+            <div className="p-4 flex-1 flex flex-col gap-3">
+              <div className="flex gap-3">
+                <ManitasAvatar manitas={m} size="md" />
                 <div className="min-w-0 flex-1">
                   <Link
                     href={`/dashboard/mantenimiento/maestros/${m.id}`}
-                    className="font-semibold text-gray-900 hover:text-violet-700 line-clamp-1"
+                    className="font-semibold text-sm text-gray-900 hover:text-violet-700 line-clamp-2 leading-snug"
                   >
                     {manitasNombreCompleto(m)}
                   </Link>
-                  <p className="text-xs text-violet-700 font-medium mt-0.5">{esp.label}</p>
-                  <div className="mt-2">
-                    <ManitasRatingDisplay value={m.rating} />
+                  <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                    <ManitasEstadoBadge estado={m.estado} />
+                    <span className="text-[10px] text-violet-600 font-medium truncate">
+                      {esp.label}
+                    </span>
+                  </div>
+                  <div className="mt-1.5">
+                    <ManitasRatingDisplay value={m.rating} size={14} />
                   </div>
                 </div>
-                <Badge variant={st.variant}>{st.label}</Badge>
               </div>
 
               <div className="space-y-1.5 text-xs text-gray-600">

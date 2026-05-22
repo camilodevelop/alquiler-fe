@@ -4,19 +4,12 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui";
-import type { Propiedad } from "@/modules/propiedades/types";
 import { InquilinoWizard } from "@/modules/inquilinos/components/form/inquilino-wizard";
 import { inquilinosService } from "@/modules/inquilinos/services/inquilinos.service";
 import { inquilinoToFormValues } from "@/modules/inquilinos/utils/defaults";
 import type { Inquilino } from "@/modules/inquilinos/types";
 
-export function InquilinosEditarClient({
-  id,
-  propiedades,
-}: {
-  id: string;
-  propiedades: Propiedad[];
-}) {
+export function InquilinosEditarClient({ id }: { id: string }) {
   const [inquilino, setInquilino] = useState<Inquilino | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -52,7 +45,7 @@ export function InquilinosEditarClient({
       inquilinoId={id}
       initialValues={inquilinoToFormValues(inquilino)}
       initialDocumentos={inquilino.documentos}
-      propiedades={propiedades}
+      hasContratoAsignado={!!inquilino.asignacion?.propiedad_id}
     />
   );
 }
