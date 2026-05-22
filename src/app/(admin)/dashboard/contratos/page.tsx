@@ -1,192 +1,75 @@
-"use client";
+import Link from "next/link";
+import { Plus, FileText } from "lucide-react";
+import { Button } from "@/components/ui";
+import { listPropiedadesAction } from "@/app/actions/propiedades";
+import { listInquilinosAction } from "@/app/actions/inquilinos";
+import { listContratosAction, listContratoTiposAction } from "@/app/actions/contratos";
+import { toListItem } from "@/modules/contratos/utils/filters";
+import { ContratosPageClient } from "./contratos-page-client";
 
-import { useState } from "react";
-import { Plus, Search, Eye, Pencil, Trash2 } from "lucide-react";
-import { Button, Badge } from "@/components/ui";
+export default async function ContratosPage() {
+  const [
+    { data: propiedades },
+    { data: inquilinos },
+    { data: contratos, error: contratosError },
+    { data: templates, error: templatesError },
+  ] = await Promise.all([
+    listPropiedadesAction(),
+    listInquilinosAction(),
+    listContratosAction(),
+    listContratoTiposAction(),
+  ]);
 
-type EstadoContrato = "activo" | "vencido" | "pendiente_firma" | "borrador";
-
-interface ContratoMock {
-  id: string;
-  propiedad: string;
-  inquilino: string;
-  inicio: string;
-  fin: string;
-  renta: string;
-  estado: EstadoContrato;
-}
-
-const CONTRATOS: ContratoMock[] = [
-  {
-    id: "1",
-    propiedad: "Calle Mayor 12, 3ºA",
-    inquilino: "Ana García López",
-    inicio: "01/06/2024",
-    fin: "31/05/2026",
-    renta: "€950",
-    estado: "activo",
-  },
-  {
-    id: "2",
-    propiedad: "Av. Diagonal 88, 2ºB",
-    inquilino: "Carlos Martínez",
-    inicio: "01/09/2023",
-    fin: "31/08/2025",
-    renta: "€1.200",
-    estado: "vencido",
-  },
-  {
-    id: "3",
-    propiedad: "Calle Goya 31, 4ºA",
-    inquilino: "Laura Sánchez",
-    inicio: "01/03/2026",
-    fin: "28/02/2028",
-    renta: "€1.050",
-    estado: "pendiente_firma",
-  },
-  {
-    id: "4",
-    propiedad: "Calle Serrano 44, 5ºD",
-    inquilino: "Miguel Torres",
-    inicio: "01/01/2025",
-    fin: "31/12/2026",
-    renta: "€1.800",
-    estado: "activo",
-  },
-  {
-    id: "5",
-    propiedad: "Gran Vía 22, 6ºA",
-    inquilino: "Sofía Ramírez",
-    inicio: "—",
-    fin: "—",
-    renta: "€1.100",
-    estado: "borrador",
-  },
-  {
-    id: "6",
-    propiedad: "Calle Alcalá 55, 2ºC",
-    inquilino: "Pedro Jiménez",
-    inicio: "15/07/2023",
-    fin: "14/07/2025",
-    renta: "€870",
-    estado: "vencido",
-  },
-];
-
-const ESTADO_CONFIG: Record<
-  EstadoContrato,
-  { variant: "success" | "danger" | "warning" | "default"; label: string }
-> = {
-  activo: { variant: "success", label: "Activo" },
-  vencido: { variant: "danger", label: "Vencido" },
-  pendiente_firma: { variant: "warning", label: "Pendiente firma" },
-  borrador: { variant: "default", label: "Borrador" },
-};
-
-export default function ContratosPage() {
-  const [search, setSearch] = useState("");
-
-  const filtered = CONTRATOS.filter(
-    (c) =>
-      c.propiedad.toLowerCase().includes(search.toLowerCase()) ||
-      c.inquilino.toLowerCase().includes(search.toLowerCase())
-  );
+  const dbError = contratosError ?? templatesError;
+  const initialData = (contratos ?? []).map(toListItem);
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Contratos</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            {CONTRATOS.filter((c) => c.estado === "activo").length} contratos
-            activos de {CONTRATOS.length} en total
-          </p>
+    <div className="space-y-8">
+      <header className="relative overflow-hidden rounded-2xl border border-gray-200/80 bg-gradient-to-br from-white via-brand-50/30 to-white px-6 py-8 sm:px-8 sm:py-10 shadow-sm">
+        <div
+          className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 rounded-full bg-brand-200/30 blur-3xl"
+          aria-hidden
+        />
+        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+          <div className="flex gap-4">
+            <div className="hidden sm:flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-brand-600 text-white shadow-lg shadow-brand-600/25">
+              <FileText size={28} strokeWidth={1.75} />
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-brand-700 mb-1">
+                Legal y arrendamientos
+              </p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
+                Contratos
+              </h1>
+              <p className="text-sm text-gray-600 mt-2 max-w-xl leading-relaxed">
+                Registra contratos con plantillas HTML, vista previa y firma simulada. Al activarse,
+                la propiedad pasa a ocupada y el inquilino a activo.
+              </p>
+            </div>
+          </div>
+          <Link href="/dashboard/contratos/nuevo" className="self-start lg:self-center shrink-0">
+            <Button variant="primary" size="md" className="gap-2 shadow-md shadow-brand-600/20">
+              <Plus size={16} />
+              Nuevo contrato
+            </Button>
+          </Link>
         </div>
-        <Button variant="primary" size="md" className="gap-2 self-start sm:self-auto">
-          <Plus size={16} />
-          Nuevo contrato
-        </Button>
-      </div>
+      </header>
 
-      {/* Buscador */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
-        <div className="relative max-w-md">
-          <Search
-            size={16}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-          />
-          <input
-            type="text"
-            placeholder="Buscar por propiedad o inquilino..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent placeholder-gray-400"
-          />
+      {dbError && (
+        <div className="rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800">
+          {dbError}. Ejecuta <code className="text-xs bg-amber-100 px-1 rounded">supabase/scripts/05_modulo_contratos.sql</code> en el SQL Editor.
         </div>
-      </div>
+      )}
 
-      {/* Tabla */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-gray-50 border-b border-gray-200">
-                {["Propiedad", "Inquilino", "Inicio", "Fin", "Renta/mes", "Estado", "Acciones"].map(
-                  (col) => (
-                    <th
-                      key={col}
-                      className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap"
-                    >
-                      {col}
-                    </th>
-                  )
-                )}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {filtered.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="px-4 py-10 text-center text-gray-400">
-                    No se encontraron contratos
-                  </td>
-                </tr>
-              ) : (
-                filtered.map((c) => {
-                  const estado = ESTADO_CONFIG[c.estado];
-                  return (
-                    <tr key={c.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-4 py-3 font-medium text-gray-900 max-w-[180px] truncate">
-                        {c.propiedad}
-                      </td>
-                      <td className="px-4 py-3 text-gray-700">{c.inquilino}</td>
-                      <td className="px-4 py-3 text-gray-600">{c.inicio}</td>
-                      <td className="px-4 py-3 text-gray-600">{c.fin}</td>
-                      <td className="px-4 py-3 font-semibold text-gray-900">{c.renta}</td>
-                      <td className="px-4 py-3">
-                        <Badge variant={estado.variant}>{estado.label}</Badge>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-1">
-                          <button className="p-1.5 rounded-md text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors">
-                            <Eye size={15} />
-                          </button>
-                          <button className="p-1.5 rounded-md text-gray-400 hover:text-brand-600 hover:bg-brand-50 transition-colors">
-                            <Pencil size={15} />
-                          </button>
-                          <button className="p-1.5 rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors">
-                            <Trash2 size={15} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <ContratosPageClient
+        initialData={initialData}
+        propiedades={propiedades}
+        inquilinos={inquilinos}
+        templates={templates}
+        dbError={dbError}
+      />
     </div>
   );
 }

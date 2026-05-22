@@ -13,8 +13,8 @@ const BREADCRUMB_MAP: Record<string, string> = {
   "/dashboard/contratos": "Contratos",
   "/dashboard/inquilinos": "Inquilinos",
   "/dashboard/mantenimiento": "Mantenimiento",
-  "/dashboard/finanzas": "Finanzas",
-  "/dashboard/invitaciones": "Invitaciones",
+  "/dashboard/finanzas": "Contabilidad",
+  "/dashboard/informes": "Informes",
   "/dashboard/mi-contrato": "Mi Contrato",
   "/dashboard/mis-pagos": "Mis Pagos",
   "/dashboard/mensajes": "Mensajes",
@@ -37,7 +37,15 @@ export function AdminTopbar({ profile, onMenuToggle, collapsed, onToggleCollapse
     ? [profile.nombre, profile.apellidos].filter(Boolean).join(" ")
     : profile.email;
 
-  const currentLabel = BREADCRUMB_MAP[pathname] ?? "Panel";
+  function getBreadcrumbLabel(path: string): string {
+    if (BREADCRUMB_MAP[path]) return BREADCRUMB_MAP[path];
+    if (path.match(/^\/dashboard\/propiedades\/[^/]+\/editar$/)) return "Editar propiedad";
+    if (path.match(/^\/dashboard\/propiedades\/[^/]+$/)) return "Detalle";
+    if (path === "/dashboard/propiedades/nueva") return "Nueva propiedad";
+    return "Panel";
+  }
+
+  const currentLabel = getBreadcrumbLabel(pathname);
 
   // Cerrar al hacer click fuera
   useEffect(() => {

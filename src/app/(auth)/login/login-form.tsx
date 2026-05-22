@@ -5,10 +5,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { LoginSchema, type LoginForm } from "@/shared";
-import { createClient } from "@/lib/supabase/client";
+import { signInAction } from "@/app/actions/auth";
 
 export function LoginForm() {
-  const supabase = createClient();
   const [serverError, setServerError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
@@ -21,45 +20,13 @@ export function LoginForm() {
 
   async function onSubmit(data: LoginForm) {
     setServerError(null);
+    setRedirecting(true);
 
-    try {
-      const { data: authData, error } = await supabase.auth.signInWithPassword({
-        email: data.email,
-        password: data.password,
-      });
+    const result = await signInAction(data.email, data.password);
 
-      if (error) {
-        setServerError(
-          error.message === "Invalid login credentials"
-            ? "Email o contraseña incorrectos"
-            : "Error al iniciar sesión. Inténtalo de nuevo."
-        );
-        return;
-      }
-
-      const userId = authData.user?.id;
-      let destination = "/dashboard";
-
-      if (userId) {
-        try {
-          const timeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), 2000));
-          const query = supabase.from("profiles").select("rol").eq("id", userId).single()
-            .then((r) => r.data as { rol: string } | null);
-
-          const profileData = await Promise.race([query, timeout]);
-          const rolesWeb = ["propietario", "gestor", "inquilino"];
-          if (profileData?.rol && !rolesWeb.includes(profileData.rol)) {
-            destination = "/mi-portal";
-          }
-        } catch {
-          // fallback al dashboard
-        }
-      }
-
-      setRedirecting(true);
-      window.location.href = destination;
-    } catch {
-      setServerError("Error al iniciar sesión. Inténtalo de nuevo.");
+    if (result?.error) {
+      setServerError(result.error);
+      setRedirecting(false);
     }
   }
 

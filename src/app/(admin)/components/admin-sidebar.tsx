@@ -7,14 +7,14 @@ import logoRentyva from "@/assets/logo-rentyva.png";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, Building2, FileText, Users, Wrench,
-  TrendingUp, UserPlus, CreditCard, MessageCircle,
+  TrendingUp, BarChart3, CreditCard, MessageCircle,
   X, ChevronDown,
 } from "lucide-react";
 import type { NavItem, Profile } from "@/shared";
 
 const ICON_MAP: Record<string, React.ElementType> = {
   LayoutDashboard, Building2, FileText, Users, Wrench,
-  TrendingUp, UserPlus, CreditCard, MessageCircle,
+  TrendingUp, BarChart3, CreditCard, MessageCircle,
 };
 
 function getHref(href: string) {
@@ -37,19 +37,33 @@ function SidebarInner({
   navItems, profile, isCollapsed, showCloseButton,
   openItems, pathname, onToggleSubmenu, onClose,
 }: SidebarInnerProps) {
-  const isItemActive = (item: NavItem): boolean => {
+  /** Ítem raíz sin hijos: activo en su ruta y subrutas */
+  const isLeafItemActive = (item: NavItem): boolean => {
     const href = getHref(item.href);
-    if (pathname === href || (href !== "/dashboard" && pathname.startsWith(href + "/"))) return true;
-    return item.children?.some((c) => {
-      const ch = getHref(c.href);
-      return pathname === ch || pathname.startsWith(ch + "/");
-    }) ?? false;
+    if (pathname === href) return true;
+    if (href === "/dashboard") return false;
+    return pathname.startsWith(href + "/");
   };
 
-  const isChildActive = (childHref: string) => {
+  /**
+   * Hijo activo: solo el submenú que mejor coincide con la ruta actual.
+   * Evita marcar el padre y otro hermano a la vez (ej. Tickets vs Manitas).
+   */
+  const isChildActive = (childHref: string, siblings: { href: string }[]) => {
     const href = getHref(childHref);
-    return pathname === href || pathname.startsWith(href + "/");
+    const matches = (ch: string) => pathname === ch || pathname.startsWith(ch + "/");
+    if (!matches(href)) return false;
+
+    const bestMatch = siblings
+      .map((c) => getHref(c.href))
+      .filter((ch) => matches(ch))
+      .sort((a, b) => b.length - a.length)[0];
+
+    return bestMatch === href;
   };
+
+  const hasActiveChild = (item: NavItem) =>
+    item.children?.some((c) => isChildActive(c.href, item.children!)) ?? false;
 
   return (
     <div className="flex flex-col h-full">
@@ -78,19 +92,18 @@ function SidebarInner({
       }`}>
         {navItems.map((item) => {
           const href = getHref(item.href);
-          const active = isItemActive(item);
+          const active = isLeafItemActive(item);
           const IconComponent = ICON_MAP[item.icon] ?? LayoutDashboard;
           const hasChildren = !!item.children?.length;
           const isOpen = openItems.has(item.href);
+          const childActive = hasActiveChild(item);
 
-          // Colapsado + con hijos → icono + popout hover
+          // Colapsado + con hijos → icono + popout hover (padre sin highlight)
           if (isCollapsed && hasChildren) {
             return (
               <div key={item.href} className="relative group/nav">
-                <Link href={href} prefetch={true} className={`flex items-center justify-center w-10 h-10 rounded-lg mx-auto transition-colors ${
-                  active ? "bg-green-50 text-green-700" : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
-                }`}>
-                  <IconComponent size={18} strokeWidth={active ? 2.5 : 2} />
+                <Link href={href} prefetch={true} className="flex items-center justify-center w-10 h-10 rounded-lg mx-auto transition-colors text-gray-500 hover:bg-gray-100 hover:text-gray-700">
+                  <IconComponent size={18} strokeWidth={2} />
                 </Link>
                 <div className="absolute left-full top-0 ml-2 hidden group-hover/nav:block z-50 min-w-[200px]">
                   <div className="bg-white border border-gray-200 rounded-xl shadow-lg py-1.5 ml-1">
@@ -100,7 +113,7 @@ function SidebarInner({
                     {item.children!.map((child) => (
                       <Link key={child.href} href={getHref(child.href)} prefetch={true} onClick={onClose}
                         className={`flex items-center px-3 py-2 text-sm transition-colors ${
-                          isChildActive(child.href) ? "text-green-700 bg-green-50 font-medium" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                          isChildActive(child.href, item.children!) ? "text-green-700 bg-green-50 font-medium" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                         }`}>
                         {child.label}
                       </Link>
@@ -129,29 +142,47 @@ function SidebarInner({
             );
           }
 
-          // Expandido + con hijos → accordion
+          // Expandido + con hijos → accordion (padre neutro; solo el hijo activo se resalta)
           if (hasChildren) {
             return (
               <div key={item.href}>
-                <button onClick={() => onToggleSubmenu(item.href)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors group ${
-                    active ? "bg-green-50 text-green-700" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                  }`}>
-                  <IconComponent size={18} strokeWidth={active ? 2.5 : 2}
-                    className={`flex-shrink-0 ${active ? "text-green-600" : "text-gray-400 group-hover:text-gray-600"}`} />
+                <button
+                  type="button"
+                  onClick={() => onToggleSubmenu(item.href)}
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors group text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                >
+                  <IconComponent
+                    size={18}
+                    strokeWidth={2}
+                    className={`flex-shrink-0 ${childActive ? "text-green-500" : "text-gray-400 group-hover:text-gray-600"}`}
+                  />
                   <span className="flex-1 text-left">{item.label}</span>
-                  <ChevronDown size={14} className={`flex-shrink-0 transition-transform duration-200 ${isOpen ? "rotate-180" : ""} ${active ? "text-green-500" : "text-gray-400"}`} />
+                  <ChevronDown
+                    size={14}
+                    className={`flex-shrink-0 transition-transform duration-200 text-gray-400 ${isOpen ? "rotate-180" : ""}`}
+                  />
                 </button>
                 {isOpen && (
                   <div className="mt-0.5 ml-7 pl-3 border-l-2 border-gray-100 space-y-0.5 pb-1">
-                    {item.children!.map((child) => (
-                      <Link key={child.href} href={getHref(child.href)} prefetch={true} onClick={onClose}
-                        className={`flex items-center py-2 px-2 rounded-lg text-sm transition-colors ${
-                          isChildActive(child.href) ? "text-green-700 font-semibold bg-green-50" : "text-gray-500 hover:text-gray-800 hover:bg-gray-50"
-                        }`}>
-                        {child.label}
-                      </Link>
-                    ))}
+                    {item.children!.map((child) => {
+                      const childIsActive = isChildActive(child.href, item.children!);
+                      return (
+                        <Link
+                          key={child.href}
+                          href={getHref(child.href)}
+                          prefetch={true}
+                          onClick={onClose}
+                          aria-current={childIsActive ? "page" : undefined}
+                          className={`flex items-center py-2 px-2 rounded-lg text-sm transition-colors ${
+                            childIsActive
+                              ? "text-green-700 font-semibold bg-green-50"
+                              : "text-gray-500 hover:text-gray-800 hover:bg-gray-50"
+                          }`}
+                        >
+                          {child.label}
+                        </Link>
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -215,9 +246,15 @@ export function AdminSidebar({
       const href = getHref(item.href);
       const childMatch = item.children.some((c) => {
         const ch = getHref(c.href);
-        return pathname === ch || pathname.startsWith(ch + "/");
+        const matches = (p: string, h: string) => p === h || p.startsWith(h + "/");
+        if (!matches(pathname, ch)) return false;
+        const best = item
+          .children!.map((x) => getHref(x.href))
+          .filter((h) => matches(pathname, h))
+          .sort((a, b) => b.length - a.length)[0];
+        return best === ch;
       });
-      if (pathname === href || childMatch) {
+      if (childMatch) {
         setOpenItems((prev) => new Set([...prev, item.href]));
       }
     });

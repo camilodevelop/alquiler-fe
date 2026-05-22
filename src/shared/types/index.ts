@@ -1,8 +1,14 @@
 export type UserRole = "propietario" | "gestor" | "inquilino" | "manitas" | "agente";
 
-export type TipoAlquiler = "tradicional" | "habitaciones" | "corta_estancia" | "flipping";
+/** @deprecated Usar TipoRenta desde @/modules/propiedades */
+export type TipoAlquiler = "tradicional" | "habitaciones" | "temporal" | "comercial";
 
-export type EstadoPropiedad = "disponible" | "alquilada" | "mantenimiento" | "inactiva";
+export type {
+  TipoRenta,
+  TipoPropiedad,
+  EstadoPropiedad,
+  Propiedad,
+} from "@/modules/propiedades/types";
 
 export type EstadoContrato = "borrador" | "pendiente_firma" | "activo" | "vencido" | "cancelado";
 
@@ -77,23 +83,3 @@ export interface Profile {
   updated_at: string;
 }
 
-export interface Propiedad {
-  id: string;
-  owner_id: string;
-  titulo: string;
-  descripcion: string | null;
-  direccion: string;
-  ciudad: string;
-  codigo_postal: string;
-  precio_mes: number;
-  habitaciones: number;
-  banos: number;
-  metros_cuadrados: number | null;
-  tipo_alquiler: TipoAlquiler;
-  estado: EstadoPropiedad;
-  lat: number | null;
-  lng: number | null;
-  pais_codigo: CodigoPais;
-  created_at: string;
-  updated_at: string;
-}
