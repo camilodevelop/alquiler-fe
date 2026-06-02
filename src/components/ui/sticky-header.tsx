@@ -7,10 +7,11 @@ import { faBars, faXmark } from "@fortawesome/free-solid-svg-icons";
 import logoRentyva from "@/assets/logo-rentyva.png";
 
 const NAV_LINKS = [
-  { label: "Funcionalidades", href: "#funcionalidades" },
-  { label: "Para quién", href: "#perfiles" },
-  { label: "Tipos de alquiler", href: "#tipos-alquiler" },
-  { label: "Precios", href: "#precios" },
+  { label: "Funcionalidades", href: "/#funcionalidades" },
+  { label: "Para quién", href: "/#perfiles" },
+  { label: "Tipos de alquiler", href: "/#tipos-alquiler" },
+  { label: "Calculadora", href: "/calculadora" },
+  { label: "Precios", href: "/#precios" },
 ];
 
 export function StickyHeader() {

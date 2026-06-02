@@ -22,6 +22,7 @@ export const WEB_NAV_ITEMS: NavItem[] = [
   },
   { label: "Contabilidad", href: "/finanzas", icon: "TrendingUp", roles: ["propietario", "gestor"] },
   { label: "Informes", href: "/informes", icon: "BarChart3", roles: ["propietario", "gestor"] },
+  { label: "Calculadora", href: "/calculadora", icon: "Calculator", roles: ["propietario", "gestor", "inquilino", "manitas", "agente"] },
   // inquilino
   { label: "Mi contrato", href: "/mi-contrato", icon: "FileText", roles: ["inquilino"] },
   { label: "Mis pagos", href: "/mis-pagos", icon: "CreditCard", roles: ["inquilino"] },

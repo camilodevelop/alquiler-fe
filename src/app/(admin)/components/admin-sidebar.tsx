@@ -7,14 +7,14 @@ import logoRentyva from "@/assets/logo-rentyva.png";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, Building2, FileText, Users, Wrench,
-  TrendingUp, BarChart3, CreditCard, MessageCircle,
+  TrendingUp, BarChart3, CreditCard, MessageCircle, Calculator,
   X, ChevronDown,
 } from "lucide-react";
 import type { NavItem, Profile } from "@/shared";
 
 const ICON_MAP: Record<string, React.ElementType> = {
   LayoutDashboard, Building2, FileText, Users, Wrench,
-  TrendingUp, BarChart3, CreditCard, MessageCircle,
+  TrendingUp, BarChart3, CreditCard, MessageCircle, Calculator,
 };
 
 function getHref(href: string) {
